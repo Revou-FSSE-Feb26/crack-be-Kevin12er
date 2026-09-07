@@ -1,1 +1,10 @@
 Instalasi saya menggunakan Jest dan untuk auto-instrumented obesrvability saya memilih NO 
+
+Agar port back end tidak bentrok dengan front end, disini aku mengubah port backend menjadi angka 3001 
+karena front end sudah menggunakan port 3000.
+
+
+Format Plug-and-Play: Lewat docker-compose.yml, semua settingan database (nama DB, username, password, port 3306) sudah terkunci dalam 
+bentuk file teks. Kamu cukup ketik "docker compose up -d", database langsung jadi dan siap pakai.
+
+
