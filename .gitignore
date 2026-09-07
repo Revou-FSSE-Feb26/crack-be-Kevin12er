@@ -31,3 +31,7 @@ yarn-error.log*
 *.sw?
 
 /src/generated/prisma
+
+
+# Catatan Pribadi
+catatan.txt
