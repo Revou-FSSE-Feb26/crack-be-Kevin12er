@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as dotenv from 'dotenv';
 // Penambahan dotenv.config() dan 
-// fallback connection string di PrismaService memastikan pg selalu memegang nilai kueri koneksi yang sah sejak detik pertama server dinyalakan.
+//  fallback connection string di PrismaService memastikan pg selalu memegang nilai kueri koneksi yang sah sejak detik pertama server dinyalakan.
 
 // Pastikan environment variable dimuat lebih awal
 dotenv.config();
