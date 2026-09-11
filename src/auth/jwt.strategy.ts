@@ -22,6 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   // Tambahkan tipe JwtPayload pada parameter payload
   async validate(payload: JwtPayload) {
+    console.log('--JWT PAYLOAD BERHASIL DIBACA--', payload)
     return { userId: payload.sub, email: payload.email, role: payload.role };
   }
 }

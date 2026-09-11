@@ -1,16 +1,19 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsEnum, IsString } from 'class-validator';
+import { Role } from '@prisma/client'; // Import enum Role dari Prisma
 
 export class RegisterDto {
-  @IsEmail({}, { message: 'Format email tidak valid' })
-  @IsNotEmpty({ message: 'Email wajib diisi' })
+  @IsEmail()
   email: string;
 
   @IsString()
-  @MinLength(8, { message: 'Password minimal 8 karakter' })
-  @IsNotEmpty({ message: 'Password wajib diisi' })
+  @IsNotEmpty()
   password: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Nama wajib diisi' })
-  name: string;
+  @IsOptional()
+  name?: string;
+
+  @IsOptional()
+  @IsEnum(Role) 
+  role?: Role;
 }

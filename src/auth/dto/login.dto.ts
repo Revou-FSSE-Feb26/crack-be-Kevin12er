@@ -1,6 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
-
 // Validasi untuk login
 export class LoginDto {
     @IsEmail({}, { message: 'Format email tidak valid' })
@@ -9,5 +8,7 @@ export class LoginDto {
 
     @IsString()
     @IsNotEmpty({ message: 'Password wajib diisi' })
-    password: string
+    password: string;
+
+    
 }
