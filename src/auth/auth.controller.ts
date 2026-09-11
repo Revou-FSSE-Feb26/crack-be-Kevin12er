@@ -3,6 +3,9 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from '@prisma/client';
 import { Request as ExpressRequest } from 'express'; 
 
 @Controller('auth')
@@ -26,6 +29,16 @@ export class AuthController {
   getProfile(@Request() req: ExpressRequest & { user: any }) { 
     return {
       message: 'Akses rute terproteksi berhasil!',
+      user: req.user,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  @Get('instructor-only')
+  getInstructorDashboard(@Request() req: ExpressRequest & { user: any }) {
+    return {
+      message: 'Selamat datang di dashboard Guru',
       user: req.user,
     };
   }
