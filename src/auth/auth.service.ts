@@ -1,43 +1,68 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service'; 
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  async register(registerDto: RegisterDto) {
-    const { email, password } = registerDto;
+  async register(dto: RegisterDto) {
+    if (!dto.password) {
+      throw new BadRequestException('Password wajib diisi');
+    }
 
-    // 1. Cek Apakah Email Sudah Terdaftar
     const existingUser = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: dto.email },
     });
 
     if (existingUser) {
-      throw new ConflictException('Email sudah terdaftar. Silakan gunakan email lain.');
+      throw new BadRequestException('Email sudah digunakan');
     }
 
-    // 2. Hash Password
-    const saltRound = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRound);
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
 
-    // 3. Simpan User Baru ke Database
-    const newUser = await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
-        email,
+        email: dto.email,
         password: hashedPassword,
+        name: dto.name,
       },
     });
 
-    // 4. Return Pesan Sukses & Data User (Tanpa Password)
-    // Menghapus properti password menggunakan object destructuring rest
-    const { password: _, ...userWithoutPassword } = newUser;
+    const { password, ...result } = user;
+    return {
+      message: 'Registrasi berhasil',
+      user: result,
+    };
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Email atau password salah');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Email atau password salah');
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload);
 
     return {
-      message: 'Registrasi berhasil!',
-      data: userWithoutPassword,
+      message: 'Login berhasil',
+      access_token: accessToken,
     };
   }
 }
