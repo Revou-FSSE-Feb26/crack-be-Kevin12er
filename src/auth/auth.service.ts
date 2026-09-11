@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service'; // Sesuaikan path PrismaService kamu
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -17,7 +17,6 @@ export class AuthService {
       throw new BadRequestException('Password wajib diisi');
     }
 
-    // 1. Cek apakah email sudah terdaftar
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -26,11 +25,9 @@ export class AuthService {
       throw new BadRequestException('Email sudah digunakan');
     }
 
-    // 2. Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
 
-    // 3. Simpan ke database (sesuai kolom skema Prisma kamu)
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -39,11 +36,33 @@ export class AuthService {
       },
     });
 
-    // 4. Kembalikan data tanpa membawa password
     const { password, ...result } = user;
     return {
       message: 'Registrasi berhasil',
       user: result,
+    };
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Email atau password salah');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Email atau password salah');
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return {
+      message: 'Login berhasil',
+      access_token: accessToken,
     };
   }
 }

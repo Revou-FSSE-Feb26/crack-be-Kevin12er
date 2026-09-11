@@ -10,7 +10,10 @@ import { JwtModule } from '@nestjs/jwt';
       secret: process.env.JWT_SECRET || 'super-secret-key', //secret key jwt, dipoin ini JWT_SECRET adalah poin utama untuk diproses sama si nest.js, tapi jika nilainya masih undefined alias aku belum menulis kode jwt nya di .env maka nest akan menampilkan tulisan 'super-secret-keys'
       signOptions: { expiresIn: '1d' } // Token berlaku selama 1 hari
     })
-  ]
+  ],
+  controllers: [AuthController],
+  providers: [AuthService],
+  exports: [AuthService]
 })
 
 export class AuthModule {}
