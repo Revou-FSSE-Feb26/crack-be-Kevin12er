@@ -2,20 +2,22 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }), // Explicitly register default strategy
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET || 'super-secret-key', //secret key jwt, dipoin ini JWT_SECRET adalah poin utama untuk diproses sama si nest.js, tapi jika nilainya masih undefined alias aku belum menulis kode jwt nya di .env maka nest akan menampilkan tulisan 'super-secret-keys'
-      signOptions: { expiresIn: '1d' } // Token berlaku selama 1 hari
-    })
+      secret: process.env.JWT_SECRET || 'super-secret-key',
+      signOptions: { expiresIn: '1d' },
+    }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService]
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
 })
-
 export class AuthModule {}
 
 //1. disini secret key jwt berlaku sebagai "KTP DIGITAL", karena ini memrupakan praktik terbaik untuk mencegah hacker
