@@ -1,8 +1,13 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -13,10 +18,6 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    if (!dto.password) {
-      throw new BadRequestException('Password wajib diisi');
-    }
-
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -33,10 +34,11 @@ export class AuthService {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
+        role: dto.role || Role.STUDENT,
       },
     });
 
-    const { password, ...result } = user;
+    const { password: _password, ...result } = user;
     return {
       message: 'Registrasi berhasil',
       user: result,
