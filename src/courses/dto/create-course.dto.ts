@@ -1,16 +1,29 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator'
 
 export class CreateCourseDto {
+
+    @ApiProperty({
+        example: 'Pemrograman NestJS Dasar',
+        description: 'Judul kelas yang akan dibuat'
+    })
     @IsString()
-    @IsNotEmpty({ message: 'Judul kelas tidak boleh kosong' })
+    @IsNotEmpty()
     title: string;
 
+    @ApiProperty({
+        example: 'Belajar REST API',
+        description: 'Deskripsi lengkap kelas'
+    })
     @IsString()
-    @IsOptional()
-    description?: string;
+    @IsNotEmpty()
+    description: string;
 
+    @ApiProperty({
+        example: 0,
+        description: 'Kelas Gratis'
+    })
     @IsNumber()
-    @Min(0, { message: 'Harga kelas tidak boleh negatif' })
-    @IsOptional()
-    price?: number
+    @Min(0)
+    price: number;
 }
