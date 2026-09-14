@@ -1,19 +1,24 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsEnum, IsString } from 'class-validator';
-import { Role } from '@prisma/client'; // Import enum Role dari Prisma
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { Role } from '@prisma/client';
 
 export class RegisterDto {
-  @IsEmail()
-  email: string;
-
+  @ApiProperty({ example: 'Siswa Baru', description: 'Nama lengkap pengguna' })
   @IsString()
   @IsNotEmpty()
+  name: string;
+
+  @ApiProperty({ example: 'siswa@example.com', description: 'Alamat email pengguna' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'password123', description: 'Kata sandi minimal 6 karakter', minLength: 6 })
+  @IsString()
+  @MinLength(6)
   password: string;
 
-  @IsString()
-  @IsOptional()
-  name?: string;
-
-  @IsOptional()
-  @IsEnum(Role) 
-  role?: Role;
+  @ApiProperty({ enum: Role, example: Role.STUDENT, description: 'Role pengguna (STUDENT atau INSTRUCTOR)' })
+  @IsEnum(Role)
+  role: Role;
 }
