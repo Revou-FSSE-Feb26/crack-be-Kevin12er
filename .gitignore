@@ -38,3 +38,6 @@ echo "*.tsbuildinfo" >> .gitignore
 
 # Catatan Pribadi
 catatan.txt
+
+*.tsbuildinfo
+tsconfig.build.tsbuildinfo
