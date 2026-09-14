@@ -1,4 +1,17 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Get, UseGuards, Request } from '@nestjs/common';
+import { Body, 
+  Controller, 
+  HttpCode, 
+  HttpStatus, 
+  Post, 
+  Get, 
+  UseGuards, 
+  Request } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -8,31 +21,47 @@ import { Roles } from './decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { Request as ExpressRequest } from 'express'; 
 
+
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Registrasi pengguna baru (Student/Instructor)'})
+  @ApiResponse({ status: 201, description: 'Pengguna berhasil terdaftar' })
+  @ApiResponse({ status: 400, description: 'Input data tidak valid' })
+  @ApiResponse({ status: 409, description: 'Email sudah terdaftar' })
   @Post('register')
   register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+    return this.authService.register(dto)
   }
 
-  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'login pengguna untuk mendapatkan JWT Access Token' })
+  @ApiResponse({ status: 201, description: 'Berhasil Login, mengembalikan access token' })
+  @ApiResponse({ status: 401, description: 'Email atau password salah' })
   @Post('login')
   login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+    return this.authService.login(dto)
   }
 
-  // RUTE PRIVATE (Hanya bisa diakses jika membawa Token valid)
+  //Rute private (hanya bisa diakses jika memiliki token yang valid)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Mengambil profil pengguna yang sedang login' })
+  @ApiResponse({ status: 200, description: 'Data profil berhasil diambil.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized / Token tidak valid.' })
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req: ExpressRequest & { user: any }) { 
+  getProfile(@Request() req: ExpressRequest & { user: any }) {
     return {
       message: 'Akses rute terproteksi berhasil!',
       user: req.user,
     };
   }
 
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Dashboard khusus pengguna dengan role INSTRUCTOR' })
+  @ApiResponse({ status: 200, description: 'Akses dashboard instructor berhasil.' })
+  @ApiResponse({ status: 403, description: 'Forbidden (Hanya Instructor).' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR)
   @Get('instructor-only')
@@ -42,4 +71,5 @@ export class AuthController {
       user: req.user,
     };
   }
-}
+
+  }
