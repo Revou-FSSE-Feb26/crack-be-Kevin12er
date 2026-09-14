@@ -4,7 +4,9 @@
     "rootDir": ".",
     "outDir": "./dist-test",
     "declaration": false,
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "module": "esnext",
+    "moduleResolution": "nodenext"
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "**/*.spec.ts"],
   "exclude": ["node_modules", "dist"]
