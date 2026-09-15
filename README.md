@@ -201,8 +201,8 @@ npx prisma migrate deploy
 
 - **Nama:** Kevin Langga
 - **Program:** RevoU Software Engineering (FSSE) tahun 2026
-- **GitHub:** [github.com/username-github-kamu](https://github.com/Kevin12er)
-- **LinkedIn:** [linkedin.com/in/username-linkedin-kamu](https://www.linkedin.com/in/kevin-langga-a0303a355/)
+- **GitHub:** [https://github.com/Kevin12er]
+- **LinkedIn:** [https://www.linkedin.com/in/kevin-langga-a0303a355/]
 
 
 
