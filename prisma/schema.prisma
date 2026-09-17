@@ -11,6 +11,12 @@ enum Role {
   STUDENT
 }
 
+enum QuizAttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -19,6 +25,7 @@ model User {
   role      Role @default(STUDENT) 
   courses   Course[]
   enrollment Enrollment[]
+  quizAttempts QuizAttempt[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -47,8 +54,26 @@ model Quiz {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  attempts    QuizAttempt[]
 
   @@index([courseId])
+}
+
+model QuizAttempt {
+  id          String            @id @default(uuid())
+  quizId       String
+  studentId    String
+  startedAt    DateTime          @default(now())
+  submittedAt  DateTime?
+  score        Float?
+  status       QuizAttemptStatus @default(IN_PROGRESS)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  quiz         Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student      User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+  @@index([studentId])
 }
 
 model Material {
