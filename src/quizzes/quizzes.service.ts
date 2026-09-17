@@ -52,4 +52,26 @@ export class QuizzesService {
       orderBy: [{ createdAt: 'desc' }],
     });
   }
+
+  async findOne(id: string) {
+    const prismaClient = this.prisma as unknown as Record<string, any>;
+
+    const quiz = await prismaClient['quiz'].findUnique({
+      where: { id },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException('Quiz tidak ditemukan');
+    }
+
+    return quiz;
+  }
 }

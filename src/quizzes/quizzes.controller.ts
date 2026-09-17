@@ -1,7 +1,16 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -44,5 +53,14 @@ export class QuizzesController {
   @Get()
   findAll(@Query('courseId') courseId?: string) {
     return this.quizzesService.findAll(courseId);
+  }
+
+  @ApiOperation({ summary: 'Mengambil detail quiz berdasarkan ID' })
+  @ApiParam({ name: 'id', description: 'ID quiz' })
+  @ApiResponse({ status: 200, description: 'Detail quiz berhasil diambil.' })
+  @ApiResponse({ status: 404, description: 'Quiz tidak ditemukan.' })
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.quizzesService.findOne(id);
   }
 }
