@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -34,11 +26,12 @@ export class MaterialsController {
     status: 403,
     description: 'Akses ditolak (hanya instructor).',
   })
+  @ApiResponse({ status: 404, description: 'Course tidak ditemukan.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.INSTRUCTOR)
   @Post()
-  create(@Body() createMaterialDto: CreateMaterialDto, @Req() req: any) {
-    return this.materialsService.create(createMaterialDto, req.user.userId);
+  create(@Body() createMaterialDto: CreateMaterialDto) {
+    return this.materialsService.create(createMaterialDto);
   }
 
   @ApiOperation({ summary: 'Mengambil daftar materi pembelajaran' })
