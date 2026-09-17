@@ -10,6 +10,7 @@ import { QuizzesModule } from './quizzes/quizzes.module';
 import { QuizAttemptsModule } from './quiz-attempts/quiz-attempts.module';
 import { QuizQuestionsModule } from './quiz-questions/quiz-questions.module';
 import { QuizOptionsModule } from './quiz-options/quiz-options.module';
+import { QuizAnswersModule } from './quiz-answers/quiz-answers.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { QuizOptionsModule } from './quiz-options/quiz-options.module';
     QuizAttemptsModule,
     QuizQuestionsModule,
     QuizOptionsModule,
+    QuizAnswersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
