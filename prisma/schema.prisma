@@ -33,8 +33,22 @@ model Course {
   instructor    User     @relation(fields: [instructorId], references: [id], onDelete: Cascade)
   enrollment    Enrollment[]
   materials     Material[]
+  quizzes       Quiz[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Quiz {
+  id          String   @id @default(uuid())
+  courseId    String
+  title       String
+  description String?  @db.Text
+  timeLimit   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
 }
 
 model Material {
