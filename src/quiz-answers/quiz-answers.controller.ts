@@ -1,5 +1,10 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -18,7 +23,10 @@ export class QuizAnswersController {
   @ApiResponse({ status: 201, description: 'Jawaban berhasil disimpan.' })
   @ApiResponse({ status: 400, description: 'Payload jawaban tidak valid.' })
   @ApiResponse({ status: 403, description: 'Akses ditolak (hanya student).' })
-  @ApiResponse({ status: 404, description: 'Attempt/question/option tidak ditemukan.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Attempt/question/option tidak ditemukan.',
+  })
   @Roles(Role.STUDENT)
   @Post()
   create(@Body() createQuizAnswerDto: CreateQuizAnswerDto, @Req() req: any) {

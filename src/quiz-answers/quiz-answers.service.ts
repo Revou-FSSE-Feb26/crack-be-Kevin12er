@@ -24,7 +24,9 @@ export class QuizAnswersService {
     }
 
     if (attempt.studentId !== studentId) {
-      throw new ForbiddenException('Anda tidak boleh mengisi jawaban attempt milik user lain');
+      throw new ForbiddenException(
+        'Anda tidak boleh mengisi jawaban attempt milik user lain',
+      );
     }
 
     const question = await prismaClient['quizQuestion'].findUnique({
@@ -37,14 +39,18 @@ export class QuizAnswersService {
     }
 
     if (question.quizId !== attempt.quizId) {
-      throw new BadRequestException('Question tidak termasuk dalam quiz attempt ini');
+      throw new BadRequestException(
+        'Question tidak termasuk dalam quiz attempt ini',
+      );
     }
 
     let computedIsCorrect: boolean | null = null;
 
     if (question.type === 'MULTIPLE_CHOICE') {
       if (!createQuizAnswerDto.selectedOptionId) {
-        throw new BadRequestException('selectedOptionId wajib diisi untuk soal MULTIPLE_CHOICE');
+        throw new BadRequestException(
+          'selectedOptionId wajib diisi untuk soal MULTIPLE_CHOICE',
+        );
       }
 
       const selectedOption = await prismaClient['quizOption'].findUnique({
@@ -57,7 +63,9 @@ export class QuizAnswersService {
       }
 
       if (selectedOption.questionId !== question.id) {
-        throw new BadRequestException('selectedOptionId tidak valid untuk question ini');
+        throw new BadRequestException(
+          'selectedOptionId tidak valid untuk question ini',
+        );
       }
 
       computedIsCorrect = Boolean(selectedOption.isCorrect);

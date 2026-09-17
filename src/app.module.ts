@@ -11,6 +11,7 @@ import { QuizAttemptsModule } from './quiz-attempts/quiz-attempts.module';
 import { QuizQuestionsModule } from './quiz-questions/quiz-questions.module';
 import { QuizOptionsModule } from './quiz-options/quiz-options.module';
 import { QuizAnswersModule } from './quiz-answers/quiz-answers.module';
+import { ResultsModule } from './results/results.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { QuizAnswersModule } from './quiz-answers/quiz-answers.module';
     QuizQuestionsModule,
     QuizOptionsModule,
     QuizAnswersModule,
+    ResultsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
