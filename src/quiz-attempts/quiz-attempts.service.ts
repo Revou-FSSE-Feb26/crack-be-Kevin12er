@@ -5,15 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuizAttemptDto } from './dto/create-quiz-attempt.dto';
+import { QuizAttemptStatus } from '@prisma/client';
 
 @Injectable()
 export class QuizAttemptsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findMyAttempts(studentId: string) {
-    const prismaClient = this.prisma as unknown as Record<string, any>;
-
-    return prismaClient['quizAttempt'].findMany({
+    return this.prisma.quizAttempt.findMany({
       where: { studentId },
       include: {
         quiz: {
@@ -29,21 +28,32 @@ export class QuizAttemptsService {
             },
           },
         },
+        result: true,
       },
       orderBy: [{ createdAt: 'desc' }],
     });
   }
 
   async create(createQuizAttemptDto: CreateQuizAttemptDto, studentId: string) {
+    const { quizId, answers = [] } = createQuizAttemptDto;
+
+    // 1. Cek keberadaan Quiz beserta Pertanyaan & Opsi Jawaban
     const quiz = await this.prisma.quiz.findUnique({
-      where: { id: createQuizAttemptDto.quizId },
-      select: { id: true, courseId: true, title: true },
+      where: { id: quizId },
+      include: {
+        questions: {
+          include: {
+            options: true,
+          },
+        },
+      },
     });
 
     if (!quiz) {
       throw new NotFoundException('Quiz tidak ditemukan');
     }
 
+    // 2. Cek Enrollment Siswa
     const enrollment = await this.prisma.enrollment.findUnique({
       where: {
         studentId_courseId: {
@@ -58,29 +68,68 @@ export class QuizAttemptsService {
       throw new ForbiddenException('Anda belum terdaftar pada course quiz ini');
     }
 
-    const prismaClient = this.prisma as unknown as Record<string, any>;
+    // 3. Hitung Skor & Evaluasi Jawaban
+    let correctCount = 0;
+    const totalQuestions = quiz.questions.length;
 
-    return prismaClient['quizAttempt'].create({
-      data: {
-        quizId: quiz.id,
-        studentId,
-      },
-      include: {
-        quiz: {
-          select: {
-            id: true,
-            title: true,
-            courseId: true,
+    const answerDataToCreate = quiz.questions.map((question) => {
+      const studentAns = answers.find((a) => a.questionId === question.id);
+      let isCorrect = false;
+
+      if (studentAns?.selectedOptionId) {
+        const selectedOpt = question.options.find(
+          (opt) => opt.id === studentAns.selectedOptionId,
+        );
+        if (selectedOpt && selectedOpt.isCorrect) {
+          isCorrect = true;
+          correctCount++;
+        }
+      }
+
+      return {
+        questionId: question.id,
+        selectedOptionId: studentAns?.selectedOptionId || null,
+        answerText: studentAns?.answerText || null,
+        isCorrect,
+      };
+    });
+
+    const finalScore =
+      totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
+    const isPassed = finalScore >= 75;
+
+    // 4. Simpan Attempt, Answers, dan Result secara Atomik (Transaction)
+    return this.prisma.$transaction(async (tx) => {
+      // Create Attempt
+      const attempt = await tx.quizAttempt.create({
+        data: {
+          quizId: quiz.id,
+          studentId,
+          score: finalScore,
+          status: QuizAttemptStatus.GRADED,
+          submittedAt: new Date(),
+          answers: {
+            create: answerDataToCreate,
           },
         },
-        student: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+      });
+
+      // Create Result
+      const result = await tx.result.create({
+        data: {
+          attemptId: attempt.id,
+          studentId,
+          quizId: quiz.id,
+          score: finalScore,
+          passed: isPassed,
+          remarks: isPassed ? 'Lulus' : 'Remedial',
         },
-      },
+      });
+
+      return {
+        ...attempt,
+        result,
+      };
     });
   }
 }
