@@ -53,8 +53,9 @@ export class QuizAttemptsService {
       throw new NotFoundException('Quiz tidak ditemukan');
     }
 
-    // 2. Cek Enrollment Siswa
-    const enrollment = await this.prisma.enrollment.findUnique({
+    
+    // 2. Cek atau Buat Enrollment Otomatis jika Belum Terdaftar
+    let enrollment = await this.prisma.enrollment.findUnique({
       where: {
         studentId_courseId: {
           studentId,
@@ -65,7 +66,14 @@ export class QuizAttemptsService {
     });
 
     if (!enrollment) {
-      throw new ForbiddenException('Anda belum terdaftar pada course quiz ini');
+      // Otomatis daftarkan siswa ke course kuis ini di PostgreSQL
+      enrollment = await this.prisma.enrollment.create({
+        data: {
+          studentId,
+          courseId: quiz.courseId,
+        },
+        select: { id: true },
+      });
     }
 
     // 3. Hitung Skor & Evaluasi Jawaban
