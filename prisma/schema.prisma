@@ -174,3 +174,13 @@ model Enrollment {
 
   @@unique([studentId, courseId])
 }
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  type        String   // MULTIPLE_CHOICE atau ESSAY
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
