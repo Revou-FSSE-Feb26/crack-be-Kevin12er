@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -14,8 +16,16 @@ import { QuizAnswersModule } from './quiz-answers/quiz-answers.module';
 import { ResultsModule } from './results/results.module';
 import { TasksModule } from './tasks/tasks.module';
 
+
 @Module({
   imports: [
+    // Rate Limiting Configuration: Maksimal 5 request per 60 detik (60000 ms)
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 5,
+      },
+    ]),
     PrismaModule,
     AuthModule,
     CoursesModule,
@@ -30,6 +40,12 @@ import { TasksModule } from './tasks/tasks.module';
     TasksModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
