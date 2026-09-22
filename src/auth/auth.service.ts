@@ -34,7 +34,7 @@ export class AuthService {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
-        role: dto.role || Role.STUDENT,
+        role: Role.STUDENT, // PERBAIKAN: Hardcode selalu Role.STUDENT tanpa pengecualian
       },
     });
 
