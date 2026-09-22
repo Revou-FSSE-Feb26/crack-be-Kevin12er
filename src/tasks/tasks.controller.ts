@@ -26,7 +26,7 @@ export class TasksController {
   @Post()
   @ApiOperation({ summary: 'Membuat tugas baru' })
   create(@Body() createTaskDto: CreateTaskDto, @Request() req: any) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     return this.tasksService.create(createTaskDto, userId);
   }
 
