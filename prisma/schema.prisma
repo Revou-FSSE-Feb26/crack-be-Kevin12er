@@ -23,43 +23,44 @@ enum QuestionType {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  role      Role @default(STUDENT) 
-  courses   Course[]
-  enrollment Enrollment[]
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  password     String
+  role         Role          @default(STUDENT)
+  courses      Course[]
+  enrollment   Enrollment[]
   quizAttempts QuizAttempt[]
-  results Result[]
+  results      Result[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  tasks     Task[]
 }
 
 model Course {
-  id            String   @id @default(uuid())
-  title         String
-  description   String?  @db.Text
-  price        Float    @default(0)
-  instructorId  String
-  instructor    User     @relation(fields: [instructorId], references: [id], onDelete: Cascade)
-  enrollment    Enrollment[]
-  materials     Material[]
-  quizzes       Quiz[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String       @id @default(uuid())
+  title        String
+  description  String?      @db.Text
+  price        Float        @default(0)
+  instructorId String
+  instructor   User         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  enrollment   Enrollment[]
+  materials    Material[]
+  quizzes      Quiz[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model Quiz {
-  id          String   @id @default(uuid())
+  id          String         @id @default(uuid())
   courseId    String
   title       String
-  description String?  @db.Text
+  description String?        @db.Text
   timeLimit   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   attempts    QuizAttempt[]
   questions   QuizQuestion[]
   results     Result[]
@@ -96,18 +97,18 @@ model QuizOption {
 
 model QuizAttempt {
   id          String            @id @default(uuid())
-  quizId       String
-  studentId    String
-  startedAt    DateTime          @default(now())
-  submittedAt  DateTime?
-  score        Float?
-  status       QuizAttemptStatus @default(IN_PROGRESS)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  quiz         Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  student      User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  answers      QuizAnswer[]
-  result       Result?
+  quizId      String
+  studentId   String
+  startedAt   DateTime          @default(now())
+  submittedAt DateTime?
+  score       Float?
+  status      QuizAttemptStatus @default(IN_PROGRESS)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  quiz        Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student     User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers     QuizAnswer[]
+  result      Result?
 
   @@index([quizId])
   @@index([studentId])
@@ -179,8 +180,11 @@ model Task {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  type        String   // MULTIPLE_CHOICE atau ESSAY
+  type        String // MULTIPLE_CHOICE atau ESSAY
   isCompleted Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }

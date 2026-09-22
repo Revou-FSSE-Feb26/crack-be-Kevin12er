@@ -3,21 +3,41 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // 1. Endpoint Create Task
-  async create(createTaskDto: CreateTaskDto) {
+  // 1. Endpoint Create Task (userId bertipe string)
+  async create(createTaskDto: CreateTaskDto, userId: string) {
     return await this.prisma.task.create({
-      data: createTaskDto,
+      data: {
+        ...createTaskDto,
+        userId: userId,
+      },
     });
   }
 
   // 2. Endpoint Get All Tasks
   async findAll() {
-    return await this.prisma.task.findMany();
+    return await this.prisma.task.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        type: true,
+        isCompleted: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
   }
 
   // 3. Endpoint Get Task by ID
