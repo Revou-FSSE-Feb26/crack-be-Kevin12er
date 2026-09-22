@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -20,6 +22,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateQuizDto } from './dto/create-quiz.dto';
+import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { QuizzesService } from './quizzes.service';
 
 @ApiTags('Quizzes')
@@ -43,16 +46,24 @@ export class QuizzesController {
     return this.quizzesService.create(createQuizDto);
   }
 
-  @ApiOperation({ summary: 'Mengambil daftar quiz' })
+  @ApiOperation({ summary: 'Mengambil daftar quiz (Bisa filter search & courseId)' })
   @ApiResponse({ status: 200, description: 'Daftar quiz berhasil diambil.' })
   @ApiQuery({
     name: 'courseId',
     required: false,
     description: 'Filter quiz berdasarkan courseId',
   })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Filter pencarian berdasarkan judul quiz',
+  })
   @Get()
-  findAll(@Query('courseId') courseId?: string) {
-    return this.quizzesService.findAll(courseId);
+  findAll(
+    @Query('courseId') courseId?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.quizzesService.findAll(courseId, search);
   }
 
   @ApiOperation({ summary: 'Mengambil detail quiz berdasarkan ID' })
@@ -62,5 +73,29 @@ export class QuizzesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.quizzesService.findOne(id);
+  }
+
+  @ApiOperation({ summary: 'Perbarui quiz (Khusus Instructor)' })
+  @ApiResponse({ status: 200, description: 'Quiz berhasil diperbarui.' })
+  @ApiResponse({ status: 403, description: 'Akses ditolak.' })
+  @ApiResponse({ status: 404, description: 'Quiz tidak ditemukan.' })
+  @ApiParam({ name: 'id', description: 'ID Quiz' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateQuizDto: UpdateQuizDto) {
+    return this.quizzesService.update(id, updateQuizDto);
+  }
+
+  @ApiOperation({ summary: 'Hapus quiz (Khusus Instructor)' })
+  @ApiResponse({ status: 200, description: 'Quiz berhasil dihapus.' })
+  @ApiResponse({ status: 403, description: 'Akses ditolak.' })
+  @ApiResponse({ status: 404, description: 'Quiz tidak ditemukan.' })
+  @ApiParam({ name: 'id', description: 'ID Quiz' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.quizzesService.remove(id);
   }
 }

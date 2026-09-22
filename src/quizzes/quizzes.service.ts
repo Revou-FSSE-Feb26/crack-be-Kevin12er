@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
+import { UpdateQuizDto } from './dto/update-quiz.dto';
 
 @Injectable()
 export class QuizzesService {
@@ -16,9 +17,7 @@ export class QuizzesService {
       throw new NotFoundException('Course tidak ditemukan');
     }
 
-    const prismaClient = this.prisma as unknown as Record<string, any>;
-
-    return prismaClient['quiz'].create({
+    return this.prisma.quiz.create({
       data: {
         courseId: createQuizDto.courseId,
         title: createQuizDto.title,
@@ -36,11 +35,17 @@ export class QuizzesService {
     });
   }
 
-  async findAll(courseId?: string) {
-    const prismaClient = this.prisma as unknown as Record<string, any>;
-
-    return prismaClient['quiz'].findMany({
-      where: courseId ? { courseId } : undefined,
+  async findAll(courseId?: string, search?: string) {
+    return this.prisma.quiz.findMany({
+      where: {
+        ...(courseId && { courseId }),
+        ...(search && {
+          title: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        }),
+      },
       include: {
         course: {
           select: {
@@ -54,9 +59,7 @@ export class QuizzesService {
   }
 
   async findOne(id: string) {
-    const prismaClient = this.prisma as unknown as Record<string, any>;
-
-    const quiz = await prismaClient['quiz'].findUnique({
+    const quiz = await this.prisma.quiz.findUnique({
       where: { id },
       include: {
         course: {
@@ -73,5 +76,41 @@ export class QuizzesService {
     }
 
     return quiz;
+  }
+
+  async update(id: string, updateQuizDto: UpdateQuizDto) {
+    await this.findOne(id); // Pastikan quiz ada
+
+    if (updateQuizDto.courseId) {
+      const course = await this.prisma.course.findUnique({
+        where: { id: updateQuizDto.courseId },
+      });
+      if (!course) {
+        throw new NotFoundException('Course target tidak ditemukan');
+      }
+    }
+
+    return this.prisma.quiz.update({
+      where: { id },
+      data: updateQuizDto,
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+  }
+
+  async remove(id: string) {
+    await this.findOne(id); // Pastikan quiz ada
+
+    await this.prisma.quiz.delete({
+      where: { id },
+    });
+
+    return { message: 'Quiz berhasil dihapus' };
   }
 }
