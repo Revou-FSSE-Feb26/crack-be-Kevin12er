@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service'; // Sesuaikan path jika berbeda
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 
@@ -26,9 +26,31 @@ export class CoursesService {
     });
   }
 
-  // 2. Ambil Semua Kelas (Publik / Student)
-  async findAll() {
+  // 2. Ambil Semua Kelas dengan Fitur Search & Filter (Publik / Student)
+  async findAll(
+    search?: string,
+    category?: string,
+    minPrice?: number,
+    maxPrice?: number,
+  ) {
     return this.prisma.course.findMany({
+      where: {
+        ...(search && {
+          OR: [
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+          ],
+        }),
+        ...(category && {
+          category: { contains: category, mode: 'insensitive' },
+        }),
+        ...((minPrice !== undefined || maxPrice !== undefined) && {
+          price: {
+            ...(minPrice !== undefined && { gte: minPrice }),
+            ...(maxPrice !== undefined && { lte: maxPrice }),
+          },
+        }),
+      },
       include: {
         instructor: {
           select: {

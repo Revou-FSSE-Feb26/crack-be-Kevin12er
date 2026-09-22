@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -24,7 +26,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 
-@ApiTags('Courses') // Mengelompokkan semua endpoint ini di Swagger UI
+@ApiTags('Courses')
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
@@ -41,12 +43,26 @@ export class CoursesController {
     return this.coursesService.create(createCourseDto, req.user.userId);
   }
 
-  // 2. AMBIL SEMUA KELAS (Publik)
-  @ApiOperation({ summary: 'Mengambil seluruh daftar course (Publik)' })
+  // 2. AMBIL SEMUA KELAS (Publik - Dengan Filter Browse & Search)
+  @ApiOperation({ summary: 'Mengambil seluruh daftar course (Publik dengan Filter)' })
   @ApiResponse({ status: 200, description: 'Menampilkan list course.' })
+  @ApiQuery({ name: 'search', required: false, description: 'Cari berdasarkan judul/deskripsi' })
+  @ApiQuery({ name: 'category', required: false, description: 'Filter berdasarkan kategori' })
+  @ApiQuery({ name: 'minPrice', required: false, description: 'Harga minimal', type: Number })
+  @ApiQuery({ name: 'maxPrice', required: false, description: 'Harga maksimal', type: Number })
   @Get()
-  findAll() {
-    return this.coursesService.findAll();
+  findAll(
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+  ) {
+    return this.coursesService.findAll(
+      search,
+      category,
+      minPrice ? Number(minPrice) : undefined,
+      maxPrice ? Number(maxPrice) : undefined,
+    );
   }
 
   // 3. AMBIL DETAIL KELAS BY ID (Publik)
