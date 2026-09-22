@@ -4,18 +4,32 @@ Backend ini adalah REST API untuk Learning Management System (LMS), dibangun den
 
 ## Fitur Yang Sudah Ada
 
-- Auth JWT: `register`, `login`, `profile`
-- Role user: `STUDENT` dan `INSTRUCTOR`
-- Course management (create, read, update, delete)
-- Enrollment siswa ke course
-- Materials (materi pembelajaran)
-- Quizzes (data quiz)
-- Quiz Questions (bank soal per quiz)
-- Quiz Options (opsi jawaban per question)
-- Quiz Attempts (tracking percobaan pengerjaan siswa)
-- Quiz Answers (simpan jawaban siswa)
-- Results (rekap hasil nilai siswa)
-- Swagger docs untuk uji endpoint
+### 1. Autentikasi & Keamanan (Auth & Security)
+- **JWT Authentication:** Endpoint `register`, `login`, dan `profile` (GET me).
+- **Role-Based Access Control (RBAC):** Proteksi hak akses berdasarkan peran (`STUDENT` dan `INSTRUCTOR`).
+- **Role Injection Protection:** Validasi ketat DTO (`ValidationPipe` + `forbidNonWhitelisted`) untuk mencegah *privilege escalation* saat registrasi.
+- **Rate Limiting (Anti Brute-Force):** Proteksi global menggunakan `@nestjs/throttler` (dibatasi 5 request/menit untuk mencegah serangan brute-force pada endpoint sensitif).
+
+### 2. Manajemen Kelas & Konten (Course & Content Management)
+- **Courses (Full CRUD):**
+  - Membuat, membaca, memperbarui, dan menghapus kelas (khusus Instructor pemilik kelas).
+  - Advanced Search & Filtering: Pencarian berdasarkan kata kunci (`search`), kategori (`category`), dan rentang harga (`minPrice` & `maxPrice`).
+- **Materials (Full CRUD):**
+  - Pengelolaan materi pembelajaran per kelas (Create, Read, Update, Delete khusus Instructor).
+  - Filter pencarian materi berdasarkan `courseId` dan kata kunci `search`.
+- **Enrollment:** Siswa (`STUDENT`) dapat mendaftar (*enroll*) ke dalam kelas yang tersedia.
+
+### 3. Sistem Kuis & Penilaian (Quizzes & Assessment System)
+- **Quizzes (Full CRUD):**
+  - Pengelolaan kuis pembelajaran dengan pembatasan durasi (*time limit*).
+  - Filter pencarian kuis berdasarkan `courseId` dan kata kunci `search`.
+- **Quiz Questions & Options:** Bank soal (Pilihan Ganda & Essay) beserta opsi jawaban dan batasan kuncinya.
+- **Quiz Attempts & Answers:** Tracking percobaan pengerjaan kuis siswa secara *real-time* beserta perekaman jawaban.
+- **Results:** Rekapitulasi nilai otomatis (*score*, status kelulusan, dan *remarks*).
+
+### 4. Dokumentasi & Alat Bantu
+- **Interactive Swagger Docs:** Dokumentasi OpenAPI interaktif di `/api/docs` untuk pengujian seluruh endpoint.
+- **Prisma ORM & PostgreSQL Integration:** Manajemen skema database relational yang solid dan terintegrasi.
 
 ## Tech Stack
 
@@ -29,50 +43,118 @@ Backend ini adalah REST API untuk Learning Management System (LMS), dibangun den
 ## Struktur Folder Project
 
 ```text
-.
-|-- prisma/
-|   |-- schema.prisma
-|   |-- seed.ts
-|   `-- migrations/
-|-- src/
-|   |-- app.controller.ts
-|   |-- app.module.ts
-|   |-- app.service.ts
-|   |-- main.ts
-|   |-- auth/
-|   |-- courses/
-|   |-- enrollment/
-|   |-- materials/
-|   |-- prisma/
-|   |-- quiz-answers/
-|   |-- quiz-attempts/
-|   |-- quiz-options/
-|   |-- quiz-questions/
-|   |-- quizzes/
-|   `-- results/
-|-- test/
-|-- docker-compose.yml
-|-- jest.config.ts
-|-- nest-cli.json
-|-- package.json
-|-- prisma7.config.ts
-|-- tsconfig.json
-`-- tsconfig.spec.json
+src
+├── app.controller.spec.ts
+├── app.controller.ts
+├── app.module.ts
+├── app.service.ts
+├── auth
+│   ├── auth.controller.spec.ts
+│   ├── auth.controller.ts
+│   ├── auth.module.ts
+│   ├── auth.service.spec.ts
+│   ├── auth.service.ts
+│   ├── decorators
+│   │   └── roles.decorator.ts
+│   ├── dto
+│   │   ├── login.dto.ts
+│   │   └── register.dto.ts
+│   ├── guards
+│   │   └── roles.guard.ts
+│   ├── jwt-auth.guard.ts
+│   └── jwt.strategy.ts
+├── courses
+│   ├── courses.controller.ts
+│   ├── courses.module.ts
+│   ├── courses.service.ts
+│   ├── dto
+│   │   ├── create-course.dto.ts
+│   │   └── update-course.dto.ts
+│   └── entities
+│       └── course.entity.ts
+├── enrollment
+│   ├── dto
+│   │   └── create-enrollment.dto.ts
+│   ├── enrollment.controller.spec.ts
+│   ├── enrollment.controller.ts
+│   ├── enrollment.module.ts
+│   ├── enrollment.service.spec.ts
+│   └── enrollment.service.ts
+├── main.ts
+├── materials
+│   ├── dto
+│   │   ├── create-material.dto.ts
+│   │   └── update-material.dto.ts
+│   ├── materials.controller.ts
+│   ├── materials.module.ts
+│   └── materials.service.ts
+├── prisma
+│   ├── prisma.module.ts
+│   ├── prisma.service.spec.ts
+│   └── prisma.service.ts
+├── quiz-answers
+│   ├── dto
+│   │   └── create-quiz-answer.dto.ts
+│   ├── quiz-answers.controller.ts
+│   ├── quiz-answers.module.ts
+│   └── quiz-answers.service.ts
+├── quiz-attempts
+│   ├── dto
+│   │   └── create-quiz-attempt.dto.ts
+│   ├── quiz-attempts.controller.ts
+│   ├── quiz-attempts.module.ts
+│   └── quiz-attempts.service.ts
+├── quiz-options
+│   ├── dto
+│   │   └── create-quiz-option.dto.ts
+│   ├── quiz-options.controller.ts
+│   ├── quiz-options.module.ts
+│   └── quiz-options.service.ts
+├── quiz-questions
+│   ├── dto
+│   │   └── create-quiz-question.dto.ts
+│   ├── quiz-questions.controller.ts
+│   ├── quiz-questions.module.ts
+│   └── quiz-questions.service.ts
+├── quizzes
+│   ├── dto
+│   │   ├── create-quiz.dto.ts
+│   │   └── update-quiz.dto.ts
+│   ├── quizzes.controller.ts
+│   ├── quizzes.module.ts
+│   └── quizzes.service.ts
+├── results
+│   ├── results.controller.ts
+│   ├── results.module.ts
+│   └── results.service.ts
+└── tasks
+    ├── dto
+    │   ├── create-task.dto.ts
+    │   └── update-task.dto.ts
+    ├── entities
+    │   └── task.entity.ts
+    ├── tasks.controller.spec.ts
+    ├── tasks.controller.ts
+    ├── tasks.module.ts
+    ├── tasks.service.spec.ts
+    └── tasks.service.ts
+
 ```
 
-## Penjelasan Folder `src`
+## Penjelasan Struktur Folder `src`
 
-- `auth/`: register, login, JWT strategy, guards, role-based access.
-- `courses/`: CRUD course.
-- `enrollment/`: pendaftaran student ke course.
-- `materials/`: materi pembelajaran per course.
-- `quizzes/`: data quiz per course.
-- `quiz-questions/`: soal per quiz.
-- `quiz-options/`: opsi jawaban per question.
-- `quiz-attempts/`: sesi pengerjaan quiz oleh siswa.
-- `quiz-answers/`: jawaban siswa per question.
-- `results/`: hasil nilai akhir siswa.
-- `prisma/`: `PrismaService` dan `PrismaModule`.
+- `auth/` — Otentikasi JWT, registrasi/login, hashing password, dekorator `@Roles`, serta guard keamanan (`JwtAuthGuard`, `RolesGuard`).
+- `courses/` — Manajemen kelas/course (CRUD lengkap, proteksi kepemilikan Instructor, serta query pencarian & filter harga/kategori).
+- `enrollment/` — Pendaftaran siswa ke kelas (*Student enrollment*).
+- `materials/` — Pengelolaan materi pembelajaran per kelas (Full CRUD + Search).
+- `quizzes/` — Pengelolaan data kuis utama per kelas (Full CRUD + Search).
+- `quiz-questions/` — Bank soal per kuis (tipe pilihan ganda & essay).
+- `quiz-options/` — Opsi pilihan jawaban beserta penentuan kunci jawaban benar.
+- `quiz-attempts/` — Manajemen sesi pengerjaan kuis siswa (tracking status pengerjaan & *time limit*).
+- `quiz-answers/` — Perekaman jawaban yang dikirimkan oleh siswa.
+- `results/` — Rekapitulasi nilai akhir, status kelulusan, dan catatan (*remarks*).
+- `tasks/` — Manajemen tugas personal siswa (Full CRUD).
+- `prisma/` — Modul database ORM (`PrismaService` & `PrismaModule`).
 
 ## Model Database Utama
 
@@ -87,7 +169,9 @@ Model yang sudah ada di `prisma/schema.prisma`:
 - `QuizOption`
 - `QuizAttempt`
 - `QuizAnswer`
+- `Task`
 - `Result`
+
 
 Enum yang sudah digunakan:
 
@@ -97,21 +181,34 @@ Enum yang sudah digunakan:
 
 ## Endpoint Tambahan Yang Sudah Diimplementasi
 
-- `GET /materials`
-- `POST /materials`
-- `GET /quizzes`
-- `POST /quizzes`
-- `GET /quizzes/:id`
-- `POST /quiz-attempts`
-- `GET /quiz-attempts`
-- `POST /quiz-questions`
-- `GET /quiz-questions/quiz/:quizId`
-- `POST /quiz-options`
-- `GET /quiz-options/question/:questionId`
-- `POST /quiz-answers`
-- `GET /quiz-answers/attempt/:attemptId`
-- `GET /results`
-- `GET /results/:studentId`
+### 1. Materials Module (`/materials`)
+- `GET /materials` — Mengambil daftar materi (Dukungan filter `courseId` & `search`)
+- `GET /materials/:id` — Mengambil detail materi berdasarkan ID
+- `POST /materials` — Membuat materi pembelajaran baru (*Khusus Instructor*)
+- `PATCH /materials/:id` — Memperbarui materi pembelajaran (*Khusus Instructor*)
+- `DELETE /materials/:id` — Menghapus materi pembelajaran (*Khusus Instructor*)
+
+### 2. Quizzes Module (`/quizzes`)
+- `GET /quizzes` — Mengambil daftar kuis (Dukungan filter `courseId` & `search`)
+- `GET /quizzes/:id` — Mengambil detail kuis berdasarkan ID
+- `POST /quizzes` — Membuat kuis baru (*Khusus Instructor*)
+- `PATCH /quizzes/:id` — Memperbarui kuis (*Khusus Instructor*)
+- `DELETE /quizzes/:id` — Menghapus kuis (*Khusus Instructor*)
+
+### 3. Quiz Management & Assessment Modules
+- **Questions & Options:**
+  - `POST /quiz-questions` — Membuat soal kuis (Pilihan Ganda / Essay)
+  - `GET /quiz-questions/quiz/:quizId` — Mengambil daftar soal berdasarkan ID Kuis
+  - `POST /quiz-options` — Membuat pilihan jawaban untuk soal
+  - `GET /quiz-options/question/:questionId` — Mengambil pilihan jawaban berdasarkan ID Soal
+- **Attempts & Answers:**
+  - `POST /quiz-attempts` — Memulai sesi pengerjaan kuis oleh siswa
+  - `GET /quiz-attempts` — Mengambil histori pengerjaan kuis
+  - `POST /quiz-answers` — Menyimpan jawaban siswa per soal
+  - `GET /quiz-answers/attempt/:attemptId` — Mengambil rekap jawaban siswa dalam 1 sesi kuis
+- **Results:**
+  - `GET /results` — Mengambil seluruh rekapitulasi nilai kuis
+  - `GET /results/:studentId` — Mengambil hasil nilai kuis spesifik berdasarkan ID Siswa
 
 ## Environment Variables
 
@@ -187,6 +284,8 @@ http://localhost:3001/api/docs
 ```bash
 npx prisma generate && npx prisma migrate deploy && npm run build && npm run start:prod
 ```
+## ERD (Table relations)
+![LearnBridge ERD Diagram](./docs/Images/ERD_relasi_database.png)
 
 ## Author
 
