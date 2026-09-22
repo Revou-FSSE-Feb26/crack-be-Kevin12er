@@ -34,7 +34,7 @@ export class AuthService {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
-        role: Role.STUDENT, // PERBAIKAN: Hardcode selalu Role.STUDENT tanpa pengecualian
+        role: Role.STUDENT, // Hardcode selalu Role.STUDENT
       },
     });
 
@@ -62,9 +62,13 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = await this.jwtService.signAsync(payload);
 
+    // Pisahkan password dari data user
+    const { password: _password, ...userResult } = user;
+
     return {
       message: 'Login berhasil',
       access_token: accessToken,
+      user: userResult, // <-- Mengembalikan data user beserta role asli dari DB
     };
   }
 }
