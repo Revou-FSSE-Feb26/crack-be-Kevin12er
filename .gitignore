@@ -49,3 +49,10 @@ dist/
 tsconfig.build.tsbuildinfo
 .env
 remedial.md
+
+
+# AI & Local Editor Tracking
+.agents
+.claude
+.windsurf
+skills-lock.json
