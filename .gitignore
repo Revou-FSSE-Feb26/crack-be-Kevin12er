@@ -48,3 +48,4 @@ dist/
 *.tsbuildinfo
 tsconfig.build.tsbuildinfo
 .env
+remedial.md
