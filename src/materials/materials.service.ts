@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
+import { UpdateMaterialDto } from './dto/update-material.dto';
 
 @Injectable()
 export class MaterialsService {
@@ -16,9 +17,7 @@ export class MaterialsService {
       throw new NotFoundException('Course tidak ditemukan');
     }
 
-    const prismaClient = this.prisma as unknown as Record<string, any>;
-
-    return prismaClient['material'].create({
+    return this.prisma.material.create({
       data: {
         courseId: createMaterialDto.courseId,
         title: createMaterialDto.title,
@@ -36,11 +35,17 @@ export class MaterialsService {
     });
   }
 
-  async findAll(courseId?: string) {
-    const prismaClient = this.prisma as unknown as Record<string, any>;
-
-    return prismaClient['material'].findMany({
-      where: courseId ? { courseId } : undefined,
+  async findAll(courseId?: string, search?: string) {
+    return this.prisma.material.findMany({
+      where: {
+        ...(courseId && { courseId }),
+        ...(search && {
+          title: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        }),
+      },
       include: {
         course: {
           select: {
@@ -51,5 +56,61 @@ export class MaterialsService {
       },
       orderBy: [{ courseId: 'asc' }, { order: 'asc' }, { createdAt: 'asc' }],
     });
+  }
+
+  async findOne(id: string) {
+    const material = await this.prisma.material.findUnique({
+      where: { id },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    if (!material) {
+      throw new NotFoundException('Materi tidak ditemukan');
+    }
+
+    return material;
+  }
+
+  async update(id: string, updateMaterialDto: UpdateMaterialDto) {
+    await this.findOne(id); // Pastikan materi ada
+
+    if (updateMaterialDto.courseId) {
+      const course = await this.prisma.course.findUnique({
+        where: { id: updateMaterialDto.courseId },
+      });
+      if (!course) {
+        throw new NotFoundException('Course target tidak ditemukan');
+      }
+    }
+
+    return this.prisma.material.update({
+      where: { id },
+      data: updateMaterialDto,
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+  }
+
+  async remove(id: string) {
+    await this.findOne(id); // Pastikan materi ada
+
+    await this.prisma.material.delete({ //disini dihapus
+      where: { id },
+    });
+
+    return { message: 'Materi berhasil dihapus' };
   }
 }
