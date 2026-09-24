@@ -104,13 +104,37 @@ export class QuizzesService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id); // Pastikan quiz ada
+  // quizzes.service.ts
 
-    await this.prisma.quiz.delete({
-      where: { id },
+async remove(id: string) {
+  const quiz = await this.prisma.quiz.findUnique({ where: { id } });
+  if (!quiz) throw new NotFoundException('Quiz tidak ditemukan');
+
+  // 1. Cari semua ID soal di kuis ini
+  const questions = await this.prisma.quizQuestion.findMany({
+    where: { quizId: id },
+    select: { id: true },
+  });
+  const questionIds = questions.map((q) => q.id);
+
+  // 2. Hapus opsi dari soal-soal kuis tersebut
+  if (questionIds.length > 0) {
+    await this.prisma.quizOption.deleteMany({
+      where: { questionId: { in: questionIds } },
     });
-
-    return { message: 'Quiz berhasil dihapus' };
   }
+
+  // 3. Hapus soal-soal kuis
+  await this.prisma.quizQuestion.deleteMany({
+    where: { quizId: id },
+  });
+
+  // 4. Hapus kuis
+  await this.prisma.quiz.delete({
+    where: { id },
+  });
+
+  return { message: 'Quiz beserta seluruh soalnya berhasil dihapus' };
+}
+
 }
