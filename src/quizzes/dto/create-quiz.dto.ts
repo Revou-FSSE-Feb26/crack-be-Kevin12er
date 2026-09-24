@@ -29,11 +29,10 @@ export class CreateQuizDto {
 
   @ApiProperty({
     example: 30,
-    description: 'Batas waktu quiz dalam menit',
-    required: false,
+    description: 'Batas waktu quiz dalam menit (Wajib diisi)',
   })
-  @IsOptional()
   @IsInt()
-  @Min(1)
-  timeLimit?: number;
+  @Min(1, { message: 'Batas waktu minimal 1 menit' })
+  @IsNotEmpty({ message: 'Batas waktu (timeLimit) wajib diisi' })
+  timeLimit: number;
 }
