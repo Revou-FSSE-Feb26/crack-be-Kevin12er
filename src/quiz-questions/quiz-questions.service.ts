@@ -51,4 +51,29 @@ export class QuizQuestionsService {
       orderBy: [{ createdAt: 'asc' }],
     });
   }
+
+  //Delete 
+  async remove(id: string) {
+    // 1. Cek apakah soal ada di database
+    const question = await this.prisma.quizQuestion.findUnique({
+      where: { id },
+    });
+
+    if (!question) {
+      throw new NotFoundException('Soal tidak ditemukan');
+    }
+
+    // 2. Hapus opsi jawaban terkait terlebih dahulu (jika relational cascade belum di DB)
+    await this.prisma.quizOption.deleteMany({
+      where: { questionId: id },
+    });
+
+    // 3. Hapus pertanyaan
+    await this.prisma.quizQuestion.delete({
+      where: { id },
+    });
+
+    return { message: 'Soal beserta opsinya berhasil dihapus' };
+  }
 }
+

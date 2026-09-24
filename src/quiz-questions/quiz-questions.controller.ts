@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, Delete } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -40,5 +40,15 @@ export class QuizQuestionsController {
   @Get('quiz/:quizId')
   findByQuizId(@Param('quizId') quizId: string) {
     return this.quizQuestionsService.findByQuizId(quizId);
+  }
+
+  @ApiOperation({ summary: 'Hapus soal berdasarkan ID (Khusus Instructor)' })
+  @ApiResponse({ status: 200, description: 'Soal berhasil dihapus.' })
+  @ApiResponse({ status: 404, description: 'Soal tidak ditemukan.' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return this.quizQuestionsService.remove(id);
   }
 }
